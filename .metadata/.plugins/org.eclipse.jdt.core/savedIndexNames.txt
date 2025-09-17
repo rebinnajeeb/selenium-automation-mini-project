@@ -1,0 +1,2 @@
+INDEX VERSION 1.134+C:\Users\2403682\OneDrive - Cognizant\Desktop\Projects\mini-project\mini_project\.metadata\.plugins\org.eclipse.jdt.core
+1865797976.index

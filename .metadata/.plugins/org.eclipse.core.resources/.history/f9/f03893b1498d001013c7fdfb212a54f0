@@ -1,0 +1,194 @@
+package miniProjectTestPackage;
+
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+
+import org.apache.poi.xssf.usermodel.XSSFCell;
+import org.apache.poi.xssf.usermodel.XSSFRow;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.firefox.FirefoxDriver;
+import org.openqa.selenium.support.ui.Select;
+import org.testng.Assert;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Parameters;
+import org.testng.annotations.Test;
+
+public class Testclass {
+	ThreadLocal<WebDriver> driver = new ThreadLocal<>();
+    String browserName;
+    String t1, p1, t2, p2, t3, p3, t4, p4, t5, p5;
+
+    @Parameters({"browser"})
+    @BeforeClass
+    public void setup(String browser) {
+        browserName = browser.toLowerCase();
+
+        if (browserName.equals("chrome")) {
+            driver.set(new ChromeDriver());
+        } else if (browserName.equals("firefox")) {
+            driver.set(new FirefoxDriver());
+        } else if (browserName.equals("edge")) {
+            System.setProperty("webdriver.edge.driver","C:\\Users\\2403682\\Downloads\\edgedriver_win64\\msedgedriver.exe");
+            driver.set(new org.openqa.selenium.edge.EdgeDriver());
+        } else {
+            throw new IllegalArgumentException("Invalid browser: " + browser);
+        }
+        driver.get().manage().window().maximize();
+        
+    }
+    
+    @Test(priority = 1)
+    public void searchForBook() {
+        WebDriver d = driver.get();
+        d.get("https://www.bookswagon.com/");
+        WebElement searchbar = d.findElement(By.id("inputbar"));
+        searchbar.sendKeys("Selenium Webdriver");
+        d.findElement(By.id("btnTopSearch")).click();
+        System.out.println(" Search performed for 'Selenium Webdriver'.");
+    }
+
+    @Test(priority = 2)
+    public void checkSearchResults() {
+        WebDriver d = driver.get();
+        WebElement number = d.findElement(By.xpath("//div[@class='preferences-show']/b"));
+        String text = number.getText();
+        int num = Integer.parseInt(text);
+        
+        Assert.assertTrue(num > 10);
+        System.out.println("SUCCESS: More than 10 results were found. Found: " + num);
+    }
+
+    @Test(priority = 3)
+    public void sortResults() {
+        WebDriver d = driver.get();
+        WebElement sort = d.findElement(By.id("ddlSort"));
+        Select select = new Select(sort);
+        sleep(3000);
+        select.selectByVisibleText("Price - Low to High");
+        sleep(3000);
+        System.out.println("Results sorted by Price - Low to High.");
+        WebElement check=d.findElement(By.xpath("//*[@id=\"ddlSort\"]/option[5]"));
+        String checktext=check.getText();
+		Assert.assertEquals(checktext,"Price - Low to High");
+    }
+
+    @Test(priority = 4)
+    public void getAndPrintResults() {
+        WebDriver d = driver.get();
+        
+        t1 = d.findElement(By.xpath("//*[@id=\"listSearchResult\"]/div[1]/div[3]/div[1]/a")).getText();
+        p1 = d.findElement(By.xpath("//*[@id=\"listSearchResult\"]/div[1]/div[3]/div[5]/div[1]/div")).getText();
+        
+        t2 = d.findElement(By.xpath("//*[@id=\"listSearchResult\"]/div[2]/div[3]/div[1]/a")).getText();
+        p2 = d.findElement(By.xpath("//*[@id=\"listSearchResult\"]/div[2]/div[3]/div[5]/div[1]/div[2]")).getText();
+        
+        t3 = d.findElement(By.xpath("//*[@id=\"listSearchResult\"]/div[3]/div[3]/div[1]/a")).getText();
+        p3 = d.findElement(By.xpath("//*[@id=\"listSearchResult\"]/div[3]/div[3]/div[5]/div[1]/div[2]")).getText();
+        
+        t4 = d.findElement(By.xpath("//*[@id=\"listSearchResult\"]/div[4]/div[3]/div[1]/a")).getText();
+        p4 = d.findElement(By.xpath("//*[@id=\"listSearchResult\"]/div[4]/div[3]/div[5]/div[1]/div[2]")).getText();
+        
+        t5 = d.findElement(By.xpath("//*[@id=\"listSearchResult\"]/div[5]/div[3]/div[1]/a")).getText();
+        p5 = d.findElement(By.xpath("//*[@id=\"listSearchResult\"]/div[5]/div[3]/div[5]/div[1]/div[2]")).getText();
+        
+        System.out.println("\n📚 Top 5 Search Results (Sorted Low to High):");
+        System.out.println("1. " + t1 + " - " + p1);
+        System.out.println("2. " + t2 + " - " + p2);
+        System.out.println("3. " + t3 + " - " + p3);
+        System.out.println("4. " + t4 + " - " + p4);
+        System.out.println("5. " + t5 + " - " + p5);
+       
+    }
+//    
+//    @Test(priority = 5)
+//    public void writeToExcel() {
+//        try {
+//            writeResultsToExcel();
+//            System.out.println(" Results successfully written to Excel.");
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//            Assert.fail("Failed to write to Excel: " + e.getMessage());
+//        }
+//    }
+
+    @AfterClass
+    public void tearDown() {
+        if (driver.get() != null) {
+            driver.get().quit();
+        }
+    }
+
+    // read Excel 
+    void excel() throws IOException {
+        FileInputStream file = new FileInputStream(System.getProperty("user.dir") + "\\testdata\\readfile.xlsx");
+        XSSFWorkbook workbook = new XSSFWorkbook(file);
+        XSSFSheet sheet = workbook.getSheet("Sheet1");
+
+        int totalRows = sheet.getLastRowNum();
+        int totalCells = sheet.getRow(1).getLastCellNum();
+
+        for (int r = 0; r <= totalRows; r++) {
+            XSSFRow currentRow = sheet.getRow(r);
+            for (int c = 0; c < totalCells; c++) {
+                XSSFCell cell = currentRow.getCell(c);
+                System.out.print(cell.toString() + "\t");
+            }
+            System.out.println();
+        }
+
+        workbook.close();
+        file.close();
+    }
+
+    //  Excel writing
+    void writeResultsToExcel() throws IOException {
+        
+        
+        XSSFWorkbook workbook = new XSSFWorkbook();
+        XSSFSheet sheet = workbook.createSheet("Search Results");
+
+        XSSFRow row1 = sheet.createRow(0);
+        row1.createCell(0).setCellValue(t1);
+        row1.createCell(1).setCellValue(p1);
+
+        XSSFRow row2 = sheet.createRow(1);
+        row2.createCell(0).setCellValue(t2);
+        row2.createCell(1).setCellValue(p2);
+
+        XSSFRow row3 = sheet.createRow(2);
+        row3.createCell(0).setCellValue(t3);
+        row3.createCell(1).setCellValue(p3);
+
+        XSSFRow row4 = sheet.createRow(3);
+        row4.createCell(0).setCellValue(t4);
+        row4.createCell(1).setCellValue(p4);
+
+        XSSFRow row5 = sheet.createRow(4);
+        row5.createCell(0).setCellValue(t5);
+        row5.createCell(1).setCellValue(p5);
+
+        String filePath = System.getProperty("user.dir") + "\\testdata\\searchResults_" + browserName + ".xlsx";
+        FileOutputStream out = new FileOutputStream(filePath);
+        workbook.write(out);
+        out.close();
+        workbook.close();
+
+        System.out.println("Search results written to Excel for " + browserName + " successfully.");
+    }
+
+    
+    void sleep(long millis) {
+        try {
+            Thread.sleep(millis);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+}
+}
